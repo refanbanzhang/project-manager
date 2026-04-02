@@ -1,0 +1,92 @@
+{
+  "projects": [
+    {
+      "id": "bookmark",
+      "name": "chrome-bookmarks",
+      "description": "Chrome 书签启动页，替换新标签页为书签启动器",
+      "type": "Chrome Extension",
+      "tech": "Vue 3 + Vite",
+      "status": "active",
+      "progress": 0,
+      "createdAt": "2026-04-02",
+      "tasks": []
+    },
+    {
+      "id": "codex-app-switcher",
+      "name": "Codex App Switcher",
+      "description": "macOS 工具应用，快速切换 Codex 账号",
+      "type": "macOS Desktop App",
+      "tech": "Swift",
+      "status": "active",
+      "progress": 0,
+      "createdAt": "2026-04-02",
+      "tasks": []
+    },
+    {
+      "id": "codex-notification",
+      "name": "Codex Notification",
+      "description": "macOS 通知钩子，Codex CLI 任务完成时发送系统通知",
+      "type": "Shell Script",
+      "tech": "Bash",
+      "status": "active",
+      "progress": 0,
+      "createdAt": "2026-04-02",
+      "tasks": []
+    },
+    {
+      "id": "download-video",
+      "name": "Download Video",
+      "description": "Chrome 扩展，检测并下载页面中的视频 (.mp4, .m3u8, .mpd)",
+      "type": "Chrome Extension",
+      "tech": "Vanilla JS (MV3)",
+      "status": "active",
+      "progress": 0,
+      "createdAt": "2026-04-02",
+      "tasks": []
+    },
+    {
+      "id": "media-auto-stop",
+      "name": "Media Auto-Stop",
+      "description": "Chrome 扩展，倒计时后自动停止所有音视频播放",
+      "type": "Chrome Extension",
+      "tech": "Vanilla JS (MV3)",
+      "status": "active",
+      "progress": 0,
+      "createdAt": "2026-04-02",
+      "tasks": []
+    },
+    {
+      "id": "my-chrome-plugins",
+      "name": "微博助手·历史清理·媒体停播",
+      "description": "多功能 Chrome 扩展：微博助手、历史清理、媒体停止、箭头翻页",
+      "type": "Chrome Extension",
+      "tech": "Vanilla JS (MV3)",
+      "status": "active",
+      "progress": 0,
+      "createdAt": "2026-04-02",
+      "tasks": []
+    },
+    {
+      "id": "test-helper",
+      "name": "Exam Helper Viewer",
+      "description": "Chrome 扩展，匹配页面考题与题库并显示参考答案",
+      "type": "Chrome Extension",
+      "tech": "Vanilla JS (MV3)",
+      "status": "active",
+      "progress": 0,
+      "createdAt": "2026-04-02",
+      "tasks": []
+    },
+    {
+      "id": "wallpapers",
+      "name": "Wallpaper Manager",
+      "description": "壁纸管理全栈 Web 应用，前后端分离",
+      "type": "Full-Stack Web App",
+      "tech": "Vue 3 + Express",
+      "status": "active",
+      "progress": 0,
+      "createdAt": "2026-04-02",
+      "tasks": []
+    }
+  ]
+}

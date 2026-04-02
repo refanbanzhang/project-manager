@@ -1,0 +1,12 @@
+{
+  "name": "project-manager",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:server": "cd backend && node index.js",
+    "dev:client": "cd frontend && npm run dev"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
