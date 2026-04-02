@@ -1,165 +1,52 @@
 <template>
   <div class="app">
-    <header class="header">
-      <h1>项目进度管理</h1>
-      <div class="header-stats">
-        <span>{{ projects.length }} 个项目</span>
-        <span>{{ totalTasks }} 个任务</span>
-        <span>{{ completedTasks }} 已完成</span>
+    <nav class="navbar">
+      <div class="navbar-brand">
+        <router-link to="/" class="logo-link">{{ t('title') }}</router-link>
       </div>
-    </header>
-    
+      <div class="navbar-stats">
+        <div class="stat-item">
+          <span class="stat-dot projects"></span>
+          <span>{{ stats.projects }} {{ t('projects') }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-dot tasks"></span>
+          <span>{{ stats.tasks }} {{ t('tasks') }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-dot completed"></span>
+          <span>{{ stats.completed }} {{ t('completed') }}</span>
+        </div>
+      </div>
+      <div class="navbar-actions">
+        <button class="icon-btn lang-btn" @click="toggleLang">
+          {{ locale === 'zh' ? 'EN' : '中文' }}
+        </button>
+        <button class="icon-btn" @click="toggleTheme" :aria-label="'Toggle theme'">
+          <svg v-if="theme === 'dark'" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>
+          </svg>
+          <svg v-else width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+        </button>
+      </div>
+    </nav>
     <main class="main">
-      <!-- 项目列表视图 -->
-      <div v-if="!selectedProject" class="project-list">
-        <div class="toolbar">
-          <input 
-            v-model="searchQuery" 
-            placeholder="搜索项目..." 
-            class="search-input"
-          />
-          <button @click="showAddProject = true" class="btn btn-primary">
-            + 添加项目
-          </button>
-        </div>
-
-        <div class="projects-grid">
-          <div 
-            v-for="project in filteredProjects" 
-            :key="project.id"
-            class="project-card"
-            @click="selectProject(project)"
-          >
-            <div class="card-header">
-              <h3>{{ project.name }}</h3>
-              <span :class="['status-badge', project.status]">
-                {{ statusLabel(project.status) }}
-              </span>
-            </div>
-            <p class="card-desc">{{ project.description }}</p>
-            <div class="card-meta">
-              <span class="tech-tag">{{ project.tech }}</span>
-              <span class="type-tag">{{ project.type }}</span>
-            </div>
-            <div class="progress-bar">
-              <div 
-                class="progress-fill" 
-                :style="{ width: project.progress + '%' }"
-              ></div>
-            </div>
-            <div class="card-footer">
-              <span>{{ project.tasks?.length || 0 }} 个任务</span>
-              <span>{{ project.progress }}%</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 项目详情视图 -->
-      <ProjectDetail 
-        v-else 
-        :project="selectedProject"
-        @back="selectedProject = null"
-        @updated="loadProjects"
-      />
+      <router-view :stats="stats" @stats-change="stats = $event" />
     </main>
-
-    <!-- 添加项目弹窗 -->
-    <div v-if="showAddProject" class="modal-overlay" @click.self="showAddProject = false">
-      <div class="modal">
-        <h2>添加新项目</h2>
-        <form @submit.prevent="addProject">
-          <div class="form-group">
-            <label>项目名称</label>
-            <input v-model="newProject.name" required />
-          </div>
-          <div class="form-group">
-            <label>描述</label>
-            <textarea v-model="newProject.description" rows="2"></textarea>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label>类型</label>
-              <select v-model="newProject.type">
-                <option>Chrome Extension</option>
-                <option>macOS Desktop App</option>
-                <option>Shell Script</option>
-                <option>Full-Stack Web App</option>
-                <option>Other</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>技术栈</label>
-              <input v-model="newProject.tech" />
-            </div>
-          </div>
-          <div class="modal-actions">
-            <button type="button" @click="showAddProject = false" class="btn">取消</button>
-            <button type="submit" class="btn btn-primary">添加</button>
-          </div>
-        </form>
-      </div>
-    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { getProjects, addProject as apiAddProject } from './api/index.js'
-import ProjectDetail from './components/ProjectDetail.vue'
+import { ref } from 'vue'
+import { useI18n, useTheme } from './composables/i18n.js'
 
-const projects = ref([])
-const selectedProject = ref(null)
-const searchQuery = ref('')
-const showAddProject = ref(false)
-const newProject = ref({
-  name: '',
-  description: '',
-  type: 'Chrome Extension',
-  tech: ''
-})
+const stats = ref({ projects: 0, tasks: 0, completed: 0 })
+const { locale, t, setLocale } = useI18n()
+const { theme, toggleTheme } = useTheme()
 
-const filteredProjects = computed(() => {
-  if (!searchQuery.value) return projects.value
-  const q = searchQuery.value.toLowerCase()
-  return projects.value.filter(p => 
-    p.name.toLowerCase().includes(q) || 
-    p.description.toLowerCase().includes(q) ||
-    p.tech.toLowerCase().includes(q)
-  )
-})
-
-const totalTasks = computed(() => 
-  projects.value.reduce((sum, p) => sum + (p.tasks?.length || 0), 0)
-)
-
-const completedTasks = computed(() => 
-  projects.value.reduce((sum, p) => 
-    sum + (p.tasks?.filter(t => t.status === 'done').length || 0), 0)
-)
-
-function statusLabel(status) {
-  const map = { active: '进行中', paused: '已暂停', completed: '已完成', archived: '已归档' }
-  return map[status] || status
+function toggleLang() {
+  setLocale(locale.value === 'zh' ? 'en' : 'zh')
 }
-
-async function loadProjects() {
-  projects.value = await getProjects()
-}
-
-async function addProject() {
-  await apiAddProject({
-    ...newProject.value,
-    id: newProject.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
-  })
-  showAddProject.value = false
-  newProject.value = { name: '', description: '', type: 'Chrome Extension', tech: '' }
-  await loadProjects()
-}
-
-function selectProject(project) {
-  selectedProject.value = project
-}
-
-onMounted(loadProjects)
 </script>

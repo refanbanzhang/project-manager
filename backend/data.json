@@ -9,7 +9,64 @@
       "status": "active",
       "progress": 0,
       "createdAt": "2026-04-02",
-      "tasks": []
+      "tasks": [
+        {
+          "id": "task_1",
+          "title": "支持文件夹拖拽排序",
+          "status": "todo",
+          "priority": "high",
+          "createdAt": "2026-04-02",
+          "completedAt": null
+        },
+        {
+          "id": "task_2",
+          "title": "添加搜索过滤书签功能",
+          "status": "todo",
+          "priority": "high",
+          "createdAt": "2026-04-02",
+          "completedAt": null
+        },
+        {
+          "id": "task_3",
+          "title": "支持自定义主题和背景图片库",
+          "status": "todo",
+          "priority": "medium",
+          "createdAt": "2026-04-02",
+          "completedAt": null
+        },
+        {
+          "id": "task_4",
+          "title": "添加常用书签快捷访问区域",
+          "status": "todo",
+          "priority": "medium",
+          "createdAt": "2026-04-02",
+          "completedAt": null
+        },
+        {
+          "id": "task_5",
+          "title": "优化书签树加载性能（虚拟滚动）",
+          "status": "todo",
+          "priority": "low",
+          "createdAt": "2026-04-02",
+          "completedAt": null
+        },
+        {
+          "id": "task_6",
+          "title": "支持书签编辑（重命名/删除/移动）",
+          "status": "todo",
+          "priority": "medium",
+          "createdAt": "2026-04-02",
+          "completedAt": null
+        },
+        {
+          "id": "task_7",
+          "title": "添加最近访问/高频书签智能推荐",
+          "status": "todo",
+          "priority": "low",
+          "createdAt": "2026-04-02",
+          "completedAt": null
+        }
+      ]
     },
     {
       "id": "codex-app-switcher",
@@ -20,7 +77,56 @@
       "status": "active",
       "progress": 0,
       "createdAt": "2026-04-02",
-      "tasks": []
+      "tasks": [
+        {
+          "id": "task_8",
+          "title": "添加账号使用统计面板（图表）",
+          "status": "todo",
+          "priority": "medium",
+          "createdAt": "2026-04-02",
+          "completedAt": null
+        },
+        {
+          "id": "task_9",
+          "title": "支持快捷键快速切换账号",
+          "status": "todo",
+          "priority": "high",
+          "createdAt": "2026-04-02",
+          "completedAt": null
+        },
+        {
+          "id": "task_10",
+          "title": "添加账号备注和标签分类功能",
+          "status": "todo",
+          "priority": "low",
+          "createdAt": "2026-04-02",
+          "completedAt": null
+        },
+        {
+          "id": "task_11",
+          "title": "优化账号导入导出（支持 CSV）",
+          "status": "todo",
+          "priority": "medium",
+          "createdAt": "2026-04-02",
+          "completedAt": null
+        },
+        {
+          "id": "task_12",
+          "title": "添加自动清理过期账号功能",
+          "status": "todo",
+          "priority": "low",
+          "createdAt": "2026-04-02",
+          "completedAt": null
+        },
+        {
+          "id": "task_13",
+          "title": "支持菜单栏快捷入口",
+          "status": "todo",
+          "priority": "medium",
+          "createdAt": "2026-04-02",
+          "completedAt": null
+        }
+      ]
     },
     {
       "id": "codex-notification",
@@ -31,7 +137,56 @@
       "status": "active",
       "progress": 0,
       "createdAt": "2026-04-02",
-      "tasks": []
+      "tasks": [
+        {
+          "id": "task_14",
+          "title": "支持自定义通知音效",
+          "status": "todo",
+          "priority": "low",
+          "createdAt": "2026-04-02",
+          "completedAt": null
+        },
+        {
+          "id": "task_15",
+          "title": "添加通知历史记录日志",
+          "status": "todo",
+          "priority": "medium",
+          "createdAt": "2026-04-02",
+          "completedAt": null
+        },
+        {
+          "id": "task_16",
+          "title": "支持过滤特定类型的通知",
+          "status": "todo",
+          "priority": "high",
+          "createdAt": "2026-04-02",
+          "completedAt": null
+        },
+        {
+          "id": "task_17",
+          "title": "添加通知模板自定义（格式/内容）",
+          "status": "todo",
+          "priority": "medium",
+          "createdAt": "2026-04-02",
+          "completedAt": null
+        },
+        {
+          "id": "task_18",
+          "title": "支持多项目同时监听",
+          "status": "todo",
+          "priority": "high",
+          "createdAt": "2026-04-02",
+          "completedAt": null
+        },
+        {
+          "id": "task_19",
+          "title": "优化安装脚本，支持一键配置",
+          "status": "todo",
+          "priority": "medium",
+          "createdAt": "2026-04-02",
+          "completedAt": null
+        }
+      ]
     },
     {
       "id": "download-video",
@@ -42,7 +197,72 @@
       "status": "active",
       "progress": 0,
       "createdAt": "2026-04-02",
-      "tasks": []
+      "tasks": [
+        {
+          "id": "task_20",
+          "title": "支持 HLS 加密流下载（含解密）",
+          "status": "todo",
+          "priority": "high",
+          "createdAt": "2026-04-02",
+          "completedAt": null
+        },
+        {
+          "id": "task_21",
+          "title": "添加 DASH 格式完整下载支持",
+          "status": "todo",
+          "priority": "high",
+          "createdAt": "2026-04-02",
+          "completedAt": null
+        },
+        {
+          "id": "task_22",
+          "title": "支持批量下载页面所有视频",
+          "status": "todo",
+          "priority": "medium",
+          "createdAt": "2026-04-02",
+          "completedAt": null
+        },
+        {
+          "id": "task_23",
+          "title": "添加下载进度实时显示",
+          "status": "todo",
+          "priority": "medium",
+          "createdAt": "2026-04-02",
+          "completedAt": null
+        },
+        {
+          "id": "task_24",
+          "title": "支持视频格式转换（FFmpeg.wasm）",
+          "status": "todo",
+          "priority": "low",
+          "createdAt": "2026-04-02",
+          "completedAt": null
+        },
+        {
+          "id": "task_25",
+          "title": "添加下载历史记录",
+          "status": "todo",
+          "priority": "low",
+          "createdAt": "2026-04-02",
+          "completedAt": null
+        },
+        {
+          "id": "task_26",
+          "title": "优化大文件下载内存占用",
+          "status": "todo",
+          "priority": "high",
+          "createdAt": "2026-04-02",
+          "completedAt": null
+        },
+        {
+          "id": "task_27",
+          "title": "支持断点续传",
+          "status": "todo",
+          "priority": "medium",
+          "createdAt": "2026-04-02",
+          "completedAt": null
+        }
+      ]
     },
     {
       "id": "media-auto-stop",
@@ -53,7 +273,56 @@
       "status": "active",
       "progress": 0,
       "createdAt": "2026-04-02",
-      "tasks": []
+      "tasks": [
+        {
+          "id": "task_28",
+          "title": "添加定时计划（每天固定时间自动停止）",
+          "status": "todo",
+          "priority": "medium",
+          "createdAt": "2026-04-02",
+          "completedAt": null
+        },
+        {
+          "id": "task_29",
+          "title": "支持白名单网站（不触发停止）",
+          "status": "todo",
+          "priority": "high",
+          "createdAt": "2026-04-02",
+          "completedAt": null
+        },
+        {
+          "id": "task_30",
+          "title": "添加倒计时悬浮窗显示",
+          "status": "todo",
+          "priority": "medium",
+          "createdAt": "2026-04-02",
+          "completedAt": null
+        },
+        {
+          "id": "task_31",
+          "title": "支持渐弱音量而非直接暂停",
+          "status": "todo",
+          "priority": "low",
+          "createdAt": "2026-04-02",
+          "completedAt": null
+        },
+        {
+          "id": "task_32",
+          "title": "添加快捷预设（15min/30min/1h）",
+          "status": "todo",
+          "priority": "medium",
+          "createdAt": "2026-04-02",
+          "completedAt": null
+        },
+        {
+          "id": "task_33",
+          "title": "优化后台运行稳定性",
+          "status": "todo",
+          "priority": "high",
+          "createdAt": "2026-04-02",
+          "completedAt": null
+        }
+      ]
     },
     {
       "id": "my-chrome-plugins",
@@ -64,7 +333,64 @@
       "status": "active",
       "progress": 0,
       "createdAt": "2026-04-02",
-      "tasks": []
+      "tasks": [
+        {
+          "id": "task_34",
+          "title": "微博助手：支持定时自动发布",
+          "status": "todo",
+          "priority": "medium",
+          "createdAt": "2026-04-02",
+          "completedAt": null
+        },
+        {
+          "id": "task_35",
+          "title": "历史清理：添加清理统计报告",
+          "status": "todo",
+          "priority": "low",
+          "createdAt": "2026-04-02",
+          "completedAt": null
+        },
+        {
+          "id": "task_36",
+          "title": "箭头翻页：支持自定义手势操作",
+          "status": "todo",
+          "priority": "medium",
+          "createdAt": "2026-04-02",
+          "completedAt": null
+        },
+        {
+          "id": "task_37",
+          "title": "模块拆分：各功能可独立开关",
+          "status": "todo",
+          "priority": "high",
+          "createdAt": "2026-04-02",
+          "completedAt": null
+        },
+        {
+          "id": "task_38",
+          "title": "添加跨设备同步设置",
+          "status": "todo",
+          "priority": "medium",
+          "createdAt": "2026-04-02",
+          "completedAt": null
+        },
+        {
+          "id": "task_39",
+          "title": "优化扩展内存占用和性能",
+          "status": "todo",
+          "priority": "high",
+          "createdAt": "2026-04-02",
+          "completedAt": null
+        },
+        {
+          "id": "task_40",
+          "title": "添加快捷键自定义配置",
+          "status": "todo",
+          "priority": "low",
+          "createdAt": "2026-04-02",
+          "completedAt": null
+        }
+      ]
     },
     {
       "id": "test-helper",
@@ -75,7 +401,56 @@
       "status": "active",
       "progress": 0,
       "createdAt": "2026-04-02",
-      "tasks": []
+      "tasks": [
+        {
+          "id": "task_41",
+          "title": "支持导入外部题库（JSON/Excel）",
+          "status": "todo",
+          "priority": "high",
+          "createdAt": "2026-04-02",
+          "completedAt": null
+        },
+        {
+          "id": "task_42",
+          "title": "优化匹配算法（模糊匹配/语义匹配）",
+          "status": "todo",
+          "priority": "high",
+          "createdAt": "2026-04-02",
+          "completedAt": null
+        },
+        {
+          "id": "task_43",
+          "title": "添加侧边面板可折叠/调整大小",
+          "status": "todo",
+          "priority": "medium",
+          "createdAt": "2026-04-02",
+          "completedAt": null
+        },
+        {
+          "id": "task_44",
+          "title": "支持题目收藏和笔记功能",
+          "status": "todo",
+          "priority": "medium",
+          "createdAt": "2026-04-02",
+          "completedAt": null
+        },
+        {
+          "id": "task_45",
+          "title": "添加答题统计和正确率分析",
+          "status": "todo",
+          "priority": "low",
+          "createdAt": "2026-04-02",
+          "completedAt": null
+        },
+        {
+          "id": "task_46",
+          "title": "支持多域名适配",
+          "status": "todo",
+          "priority": "medium",
+          "createdAt": "2026-04-02",
+          "completedAt": null
+        }
+      ]
     },
     {
       "id": "wallpapers",
@@ -86,7 +461,72 @@
       "status": "active",
       "progress": 0,
       "createdAt": "2026-04-02",
-      "tasks": []
+      "tasks": [
+        {
+          "id": "task_47",
+          "title": "添加用户认证和权限管理",
+          "status": "todo",
+          "priority": "high",
+          "createdAt": "2026-04-02",
+          "completedAt": null
+        },
+        {
+          "id": "task_48",
+          "title": "支持壁纸标签分类和搜索",
+          "status": "todo",
+          "priority": "high",
+          "createdAt": "2026-04-02",
+          "completedAt": null
+        },
+        {
+          "id": "task_49",
+          "title": "添加图片压缩和多种分辨率生成",
+          "status": "todo",
+          "priority": "medium",
+          "createdAt": "2026-04-02",
+          "completedAt": null
+        },
+        {
+          "id": "task_50",
+          "title": "支持收藏和下载计数",
+          "status": "todo",
+          "priority": "medium",
+          "createdAt": "2026-04-02",
+          "completedAt": null
+        },
+        {
+          "id": "task_51",
+          "title": "添加暗色/亮色主题切换",
+          "status": "todo",
+          "priority": "low",
+          "createdAt": "2026-04-02",
+          "completedAt": null
+        },
+        {
+          "id": "task_52",
+          "title": "优化图片懒加载和 CDN 加速",
+          "status": "todo",
+          "priority": "high",
+          "createdAt": "2026-04-02",
+          "completedAt": null
+        },
+        {
+          "id": "task_53",
+          "title": "支持批量上传和管理",
+          "status": "todo",
+          "priority": "medium",
+          "createdAt": "2026-04-02",
+          "completedAt": null
+        },
+        {
+          "id": "task_54",
+          "title": "添加 API 文档（Swagger/OpenAPI）",
+          "status": "todo",
+          "priority": "low",
+          "createdAt": "2026-04-02",
+          "completedAt": null
+        }
+      ]
     }
   ]
 }

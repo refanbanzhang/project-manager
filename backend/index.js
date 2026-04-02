@@ -131,8 +131,6 @@ function findAvailablePort(startPort) {
   });
 }
 
-import net from 'net';
-
 const PORT = await findAvailablePort(30000 + Math.floor(Math.random() * 30000));
 writeFileSync(join(__dirname, '.port'), String(PORT));
 app.listen(PORT, () => {
