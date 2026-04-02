@@ -131,8 +131,7 @@ function findAvailablePort(startPort) {
   });
 }
 
-const PORT = await findAvailablePort(30000 + Math.floor(Math.random() * 30000));
-writeFileSync(join(__dirname, '.port'), String(PORT));
+const PORT = 3001;
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });

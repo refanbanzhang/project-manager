@@ -134,7 +134,7 @@
       "description": "macOS 通知钩子，Codex CLI 任务完成时发送系统通知",
       "type": "Shell Script",
       "tech": "Bash",
-      "status": "active",
+      "status": "paused",
       "progress": 0,
       "createdAt": "2026-04-02",
       "tasks": [
