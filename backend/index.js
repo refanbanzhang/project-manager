@@ -4,12 +4,63 @@ import { readFileSync, writeFileSync, readdirSync, existsSync, lstatSync, rmSync
 import { fileURLToPath } from 'url';
 import { dirname, join, resolve } from 'path';
 import net from 'net';
+import { execSync } from 'child_process';
+import https from 'https';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const DATA_FILE = join(__dirname, 'data.json');
 const PARENT_DIR = resolve(__dirname, '../..');
 const CURRENT_PROJECT_NAME = 'project-manager';
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN || '';
+
+function getRemoteRepo(dirPath) {
+  try {
+    const remote = execSync('git remote get-url origin', { cwd: dirPath, encoding: 'utf-8' }).trim();
+    const match = remote.match(/github\.com[:/](.+?)\/(.+?)(?:\.git)?$/);
+    if (match) return { owner: match[1], repo: match[2] };
+  } catch {}
+  return null;
+}
+
+async function deleteRemoteRepo(owner, repo) {
+  if (!GITHUB_TOKEN) {
+    console.warn('GITHUB_TOKEN not set, skipping remote repo deletion');
+    return false;
+  }
+  return new Promise((resolve) => {
+    const url = `https://api.github.com/repos/${owner}/${repo}`;
+    const parsed = new URL(url);
+    const data = JSON.stringify({});
+    const options = {
+      hostname: parsed.hostname,
+      path: parsed.pathname,
+      method: 'DELETE',
+      headers: {
+        'Authorization': `token ${GITHUB_TOKEN}`,
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Length': Buffer.byteLength(data),
+        'User-Agent': 'project-manager',
+      },
+    };
+    const req = https.request(options, (res) => {
+      if (res.statusCode === 204) resolve(true);
+      else {
+        let body = '';
+        res.on('data', (chunk) => body += chunk);
+        res.on('end', () => {
+          console.error(`Failed to delete remote ${owner}/${repo}: ${res.statusCode} ${body}`);
+          resolve(false);
+        });
+      }
+    });
+    req.on('error', (e) => {
+      console.error(`Error deleting remote ${owner}/${repo}:`, e.message);
+      resolve(false);
+    });
+    req.end(data);
+  });
+}
 
 const app = express();
 app.use(cors());
@@ -28,12 +79,13 @@ function writeData(data) {
 }
 
 function detectProjectInfo(dirPath) {
-  const info = { type: 'Other', tech: '' };
+  const info = { type: 'Other', tech: '', summary: '' };
   const techs = [];
 
   if (existsSync(join(dirPath, 'package.json'))) {
     try {
       const pkg = JSON.parse(readFileSync(join(dirPath, 'package.json'), 'utf-8'));
+      if (pkg.description) info.summary = pkg.description;
       const deps = { ...pkg.dependencies, ...pkg.devDependencies };
       if (deps.next) { techs.push('Next.js'); }
       if (deps.react && !deps.next) { techs.push('React'); }
@@ -42,6 +94,15 @@ function detectProjectInfo(dirPath) {
       if (deps.express) { techs.push('Express'); }
       if (deps.tailwindcss) { techs.push('Tailwind'); }
       if (deps.electron) { techs.push('Electron'); }
+    } catch {}
+  }
+
+  if (existsSync(join(dirPath, 'README.md')) && !info.summary) {
+    try {
+      const readme = readFileSync(join(dirPath, 'README.md'), 'utf-8');
+      const lines = readme.split('\n').filter(l => l.trim() && !l.trim().startsWith('#'));
+      const firstPara = lines.find(l => l.trim());
+      if (firstPara) info.summary = firstPara.trim().slice(0, 120);
     } catch {}
   }
 
@@ -80,6 +141,7 @@ function scanProjects() {
         id: entry.name,
         name: entry.name,
         description: saved?.description || '',
+        summary: saved?.summary || detected.summary || '',
         type: saved?.type || detected.type,
         tech: saved?.tech || detected.tech,
         status: saved?.status || 'active',
@@ -191,7 +253,7 @@ app.post('/api/projects', (req, res) => {
 });
 
 // 删除项目
-app.delete('/api/projects/:id', (req, res) => {
+app.delete('/api/projects/:id', async (req, res) => {
   const data = readData();
   const projectPath = join(PARENT_DIR, req.params.id);
   const index = data.projects.findIndex(p => p.id === req.params.id);
@@ -204,6 +266,10 @@ app.delete('/api/projects/:id', (req, res) => {
   writeData(data);
 
   if (existsSync(projectPath)) {
+    const remoteRepo = getRemoteRepo(projectPath);
+    if (remoteRepo) {
+      await deleteRemoteRepo(remoteRepo.owner, remoteRepo.repo);
+    }
     try {
       rmSync(projectPath, { recursive: true, force: true });
     } catch (err) {
