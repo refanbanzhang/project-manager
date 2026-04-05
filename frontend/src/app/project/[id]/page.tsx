@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useApp } from "@/components/providers";
 import { fetchProject, updateProject, addTask, updateTask, deleteTask } from "@/lib/api";
+import type { Project, Task, NewTask, TaskPriority } from "@/lib/types";
 import {
   Button,
   Chip,
@@ -17,17 +18,17 @@ import {
 } from "@heroui/react";
 
 function Skeleton({ className }: { className?: string }) {
-  return <div className={`animate-pulse bg-[var(--bg-tertiary)] rounded-lg ${className}`} />;
+  return <div className={`animate-pulse bg-[var(--bg-secondary)] rounded-none ${className}`} />;
 }
 
 function StatusSelect({ value, onChange, statusColor, statusMap, t }: any) {
   const [open, setOpen] = useState(false);
   const statuses = ["active", "paused", "completed", "archived"];
   
-  const colorMap: any = {
+  const colorMap: Record<string, string> = {
     active: "bg-[var(--success)]",
     paused: "bg-[var(--warning)]",
-    completed: "bg-[var(--primary)]",
+    completed: "bg-[var(--accent)]",
     archived: "bg-[var(--text-tertiary)]",
   };
   
@@ -35,9 +36,9 @@ function StatusSelect({ value, onChange, statusColor, statusMap, t }: any) {
     <div className="relative">
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-2 px-3 py-2 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-card)] hover:border-[var(--accent)] transition-colors cursor-pointer"
+        className="flex items-center gap-2 px-3 py-2 rounded-none border border-[var(--border-primary)] bg-[var(--bg-secondary)] hover:border-[var(--accent)] transition-colors cursor-pointer"
       >
-        <span className={`w-2 h-2 rounded-full ${colorMap[value]}`} />
+        <span className={`w-2 h-2 rounded-none ${colorMap[value]}`} />
         <span className="text-sm font-medium text-[var(--text-primary)]">{statusMap[value]}</span>
         <svg className={`w-4 h-4 text-[var(--text-tertiary)] transition-transform ${open ? 'rotate-180' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="m6 9 6 6 6-6"/>
@@ -47,16 +48,16 @@ function StatusSelect({ value, onChange, statusColor, statusMap, t }: any) {
       {open && (
         <>
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 top-full mt-2 w-40 py-1 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-card)] shadow-lg z-20">
+          <div className="absolute right-0 top-full mt-1 w-40 py-1 rounded-none border border-[var(--border-primary)] bg-[var(--bg-card)] z-20">
             {statuses.map((status) => (
               <button
                 key={status}
                 onClick={() => { onChange(status); setOpen(false); }}
-                className={`w-full flex items-center gap-2 px-3 py-2 text-sm text-left hover:bg-[var(--bg-secondary)] transition-colors cursor-pointer ${
-                  value === status ? 'bg-[var(--bg-secondary)]' : ''
+                className={`w-full flex items-center gap-2 px-3 py-2 text-sm text-left hover:bg-[var(--accent-soft)] transition-colors cursor-pointer ${
+                  value === status ? 'bg-[var(--accent-soft)]' : ''
                 }`}
               >
-                <span className={`w-2 h-2 rounded-full ${colorMap[status]}`} />
+                <span className={`w-2 h-2 rounded-none ${colorMap[status]}`} />
                 <span className="text-[var(--text-primary)]">{statusMap[status]}</span>
               </button>
             ))}
@@ -71,7 +72,7 @@ function ProjectHeader({ project, localStatus, statusColor, statusMap, onStatusC
   return (
     <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6 mb-8">
       <div className="flex items-start gap-4">
-        <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[var(--accent)]/20 to-[var(--accent)]/5 text-[var(--accent)]">
+        <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-none bg-[var(--accent)] text-black glow-border">
           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4" />
             <path d="M9 18c-4.51 2-5-2-7-2" />
@@ -79,19 +80,19 @@ function ProjectHeader({ project, localStatus, statusColor, statusMap, onStatusC
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-3 flex-wrap mb-2">
-            <h1 className="text-2xl lg:text-3xl font-bold tracking-tight text-[var(--text-primary)]">{project.name}</h1>
+            <h1 className="text-2xl lg:text-3xl font-bold tracking-tight text-[var(--text-primary)] font-[family-name:var(--font-heading)]">{project.name}</h1>
             <Chip 
               size="sm" 
               color={statusColor[project.status] || "default"} 
-              variant="flat"
+              variant="soft"
               className="font-medium"
             >
               {statusMap[project.status] || project.status}
             </Chip>
           </div>
           <div className="flex items-center gap-2 flex-wrap mb-3">
-            <Chip size="sm" variant="flat" className="bg-[var(--bg-secondary)] text-[var(--text-secondary)]">{project.type}</Chip>
-            <Chip size="sm" variant="flat" className="bg-[var(--bg-secondary)] text-[var(--text-secondary)]">{project.tech}</Chip>
+            <Chip size="sm" variant="soft" className="bg-[var(--bg-secondary)] text-[var(--text-secondary)]">{project.type}</Chip>
+            <Chip size="sm" variant="soft" className="bg-[var(--bg-secondary)] text-[var(--text-secondary)]">{project.tech}</Chip>
           </div>
           {(project.description || project.summary) && (
             <p className="text-sm text-[var(--text-secondary)] leading-relaxed max-w-2xl">
@@ -126,8 +127,8 @@ function ProgressRing({ progress }: { progress: number }) {
           cy="40"
           r="36"
           fill="none"
-          stroke="var(--bg-tertiary)"
-          strokeWidth="6"
+          stroke="var(--border-primary)"
+          strokeWidth="4"
         />
         <circle
           cx="40"
@@ -135,15 +136,16 @@ function ProgressRing({ progress }: { progress: number }) {
           r="36"
           fill="none"
           stroke="var(--accent)"
-          strokeWidth="6"
+          strokeWidth="4"
           strokeDasharray={circumference}
           strokeDashoffset={offset}
-          strokeLinecap="round"
+          strokeLinecap="square"
           className="transition-all duration-500 ease-out"
+          style={{ filter: 'drop-shadow(0 0 8px var(--accent-glow))' }}
         />
       </svg>
       <div className="absolute inset-0 flex items-center justify-center">
-        <span className="text-xl font-bold text-[var(--text-primary)]">{progress}%</span>
+        <span className="text-xl font-bold text-[var(--accent)] glow-text">{progress}%</span>
       </div>
     </div>
   );
@@ -151,9 +153,9 @@ function ProgressRing({ progress }: { progress: number }) {
 
 function StatCard({ title, value, subtitle, colorClass, icon }: any) {
   return (
-    <Card className="border border-[var(--border-subtle)] bg-[var(--bg-card)]">
+    <Card className="cyber-card border-[var(--border-primary)]">
       <Card.Content className="p-5 flex items-center gap-4">
-        <div className={`p-3 rounded-xl ${colorClass} bg-opacity-10`}>
+        <div className={`p-3 rounded-none ${colorClass}`}>
           {icon}
         </div>
         <div>
@@ -168,15 +170,11 @@ function StatCard({ title, value, subtitle, colorClass, icon }: any) {
 
 function TaskItem({ task, onToggle, onDelete, priorityLabel, priorityColor, t }: any) {
   return (
-    <div className="group flex items-center gap-3 px-4 py-3 hover:bg-[var(--bg-secondary)] transition-colors rounded-lg">
+    <div className="group flex items-center gap-3 px-4 py-3 hover:bg-[var(--accent-soft)] transition-colors rounded-none">
       <Checkbox
         isSelected={task.status === "done"}
         onChange={() => onToggle(task)}
         className="flex-shrink-0"
-        classNames={{
-          wrapper: "before:border-[var(--border-subtle)]",
-        }}
-        size="lg"
       />
       <div className="flex-1 min-w-0">
         <div className={`text-sm font-medium ${
@@ -190,14 +188,14 @@ function TaskItem({ task, onToggle, onDelete, priorityLabel, priorityColor, t }:
       <Chip 
         size="sm" 
         color={priorityColor[task.priority] || "default"} 
-        variant="flat"
-        className="text-[11px] hidden sm:flex"
+        variant="soft"
+        className="text-[11px] hidden sm:flex bg-[var(--bg-secondary)]"
       >
         {priorityLabel[task.priority]}
       </Chip>
       <Button
         isIconOnly
-        variant="light"
+        variant="ghost"
         size="sm"
         onPress={() => onDelete(task)}
         className="opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 min-w-0 text-[var(--text-tertiary)] hover:text-[var(--danger)]"
@@ -224,10 +222,10 @@ function TaskList({ tasks, onToggle, onDelete, priorityLabel, priorityColor, t }
   const doneTasks = sortedTasks.filter((t: any) => t.status === "done");
 
   return (
-    <Card className="border border-[var(--border-subtle)] bg-[var(--bg-card)] overflow-hidden">
+    <Card className="cyber-card border-[var(--border-primary)] overflow-hidden">
       <Card.Header className="px-5 py-4 border-b border-[var(--border-subtle)] flex items-center justify-between">
-        <h2 className="text-base font-semibold text-[var(--text-primary)] flex items-center gap-2">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--accent)]">
+        <h2 className="text-base font-semibold text-[var(--text-primary)] flex items-center gap-2 font-[family-name:var(--font-heading)]">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 2v4"/><path d="m16.2 7.8 2.9-2.9"/><path d="M18 12h4"/><path d="m16.2 16.2 2.9 2.9"/><path d="M12 18v4"/><path d="m4.9 4.9 2.9 2.9"/><path d="M2 12h4"/><path d="m4.9 19.1 2.9-2.9"/>
           </svg>
           {t("taskList")}
@@ -239,10 +237,10 @@ function TaskList({ tasks, onToggle, onDelete, priorityLabel, priorityColor, t }
         <Card.Content className="p-0 max-h-[400px] overflow-y-auto">
           {todoTasks.length > 0 && (
             <div className="px-2">
-              <div className="px-3 py-2 text-xs font-medium text-[var(--text-tertiary)] uppercase tracking-wide sticky top-0 bg-[var(--bg-card)]">
+              <div className="px-3 py-2 text-xs font-medium text-[var(--text-tertiary)] uppercase tracking-wide sticky top-0 bg-[var(--bg-card)] border-b border-[var(--border-subtle)]">
                 {t("todo")} ({todoTasks.length})
               </div>
-              <div className="space-y-1">
+              <div className="space-y-0">
                 {todoTasks.map((task: any) => (
                   <TaskItem 
                     key={task.id} 
@@ -260,10 +258,10 @@ function TaskList({ tasks, onToggle, onDelete, priorityLabel, priorityColor, t }
           
           {doneTasks.length > 0 && (
             <div className="px-2 mt-4">
-              <div className="px-3 py-2 text-xs font-medium text-[var(--text-tertiary)] uppercase tracking-wide sticky top-0 bg-[var(--bg-card)]">
+              <div className="px-3 py-2 text-xs font-medium text-[var(--text-tertiary)] uppercase tracking-wide sticky top-0 bg-[var(--bg-card)] border-b border-[var(--border-subtle)]">
                 {t("completed")} ({doneTasks.length})
               </div>
-              <div className="space-y-1">
+              <div className="space-y-0">
                 {doneTasks.map((task: any) => (
                   <TaskItem 
                     key={task.id} 
@@ -281,8 +279,8 @@ function TaskList({ tasks, onToggle, onDelete, priorityLabel, priorityColor, t }
         </Card.Content>
       ) : (
         <Card.Content className="p-12 flex flex-col items-center justify-center text-center">
-          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-[var(--bg-secondary)] text-[var(--text-tertiary)]">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-none bg-[var(--accent-soft)] border border-[var(--accent)]">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="1.5" strokeLinecap="round">
               <rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="m9 14 2 2 4-4"/>
             </svg>
           </div>
@@ -299,11 +297,11 @@ function AddTaskModal({ isOpen, onClose, onAdd, newTask, setNewTask, t }: any) {
   
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-md animate-in fade-in duration-200" onClick={onClose} />
-      <div className="relative w-full max-w-md bg-[var(--bg-card)] rounded-2xl shadow-2xl border border-[var(--border-subtle)] ring-1 ring-black/5 animate-in fade-in zoom-in-95 duration-300">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border-subtle)]">
+      <div className="absolute inset-0 bg-black/80" onClick={onClose} />
+      <div className="relative w-full max-w-md modal-cyber rounded-none animate-in fade-in zoom-in-95 duration-300">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border-subtle)] bg-[var(--bg-elevated)]">
           <h2 className="text-lg font-semibold text-[var(--text-primary)]">{t("addTaskTitle")}</h2>
-          <Button isIconOnly variant="light" size="sm" onPress={onClose} className="text-[var(--text-tertiary)] h-8 w-8 min-w-0">
+          <Button isIconOnly variant="ghost" size="sm" onPress={onClose} className="text-[var(--text-tertiary)] h-8 w-8 min-w-0">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
           </Button>
         </div>
@@ -315,7 +313,6 @@ function AddTaskModal({ isOpen, onClose, onAdd, newTask, setNewTask, t }: any) {
               placeholder={t("taskTitle")}
               value={newTask.title}
               onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
-              className="bg-transparent"
             />
           </div>
           
@@ -335,9 +332,9 @@ function AddTaskModal({ isOpen, onClose, onAdd, newTask, setNewTask, t }: any) {
         </div>
         
         <div className="flex justify-end gap-3 px-6 py-4 border-t border-[var(--border-subtle)]">
-          <Button variant="light" onPress={onClose}>{t("cancel")}</Button>
+          <Button variant="ghost" onPress={onClose}>{t("cancel")}</Button>
           <Button 
-            variant="primary" 
+            className="btn-cyber-primary"
             onPress={onAdd}
             isDisabled={!newTask.title.trim()}
           >
@@ -353,25 +350,36 @@ export default function ProjectDetailPage() {
   const params = useParams();
   const id = params.id as string;
   const { t, lang, setLang, theme, toggleTheme } = useApp();
-  const [project, setProject] = useState<any>(null);
+  const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [showTaskModal, setShowTaskModal] = useState(false);
-  const [newTask, setNewTask] = useState({ title: "", priority: "medium" });
-  const [localStatus, setLocalStatus] = useState("active");
+  const [newTask, setNewTask] = useState<NewTask>({ title: "", priority: "medium" });
+  const [localStatus, setLocalStatus] = useState<string>("active");
 
   const load = useCallback(async () => {
     setLoading(true);
-    const data = await fetchProject(id);
-    setProject(data);
-    setLocalStatus(data.status);
-    setLoading(false);
+    setError(null);
+    try {
+      const data = await fetchProject(id);
+      if (!data) {
+        setError("Project not found");
+        return;
+      }
+      setProject(data);
+      setLocalStatus(data.status);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to load project");
+    } finally {
+      setLoading(false);
+    }
   }, [id]);
 
   useEffect(() => { load(); }, [load]);
 
   async function handleStatusChange(val: string) {
     setLocalStatus(val);
-    await updateProject(id, { status: val });
+    await updateProject(id, { status: val as any });
     load();
   }
 
@@ -383,41 +391,49 @@ export default function ProjectDetailPage() {
     load();
   }
 
-  async function toggleTask(task: any) {
-    const s = task.status === "done" ? "todo" : "done";
-    await updateTask(id, task.id, { status: s });
+  async function toggleTask(task: Task) {
+    const newStatus = task.status === "done" ? "todo" : "done";
+    await updateTask(id, task.id, { status: newStatus });
     load();
   }
 
-  async function removeTask(task: any) {
+  async function removeTask(task: Task) {
     await deleteTask(id, task.id);
     load();
   }
 
-  const priorityLabel: any = { high: t("high"), medium: t("medium"), low: t("low") };
-  const priorityColor: any = { high: "danger", medium: "warning", low: "success" };
-  const statusColor: any = { active: "primary", paused: "warning", completed: "success", archived: "default" };
-  const statusMap: any = { active: t("active"), paused: t("paused"), completed: t("completedStatus"), archived: t("archived") };
+  const priorityLabel: Record<TaskPriority, string> = 
+    { high: t("high"), medium: t("medium"), low: t("low") };
+  const priorityColor: Record<TaskPriority, string> = 
+    { high: "danger", medium: "warning", low: "success" };
+  const statusColor: Record<string, string> = 
+    { active: "success", paused: "warning", completed: "default", archived: "default" };
+  const statusMap: Record<string, string> = 
+    { active: t("active"), paused: t("paused"), completed: t("completedStatus"), archived: t("archived") };
 
-  const doneCount = project?.tasks?.filter((t: any) => t.status === "done").length || 0;
-  const todoCount = (project?.tasks?.length || 0) - doneCount;
-  const completionRate = project?.tasks?.length ? Math.round(doneCount / project.tasks.length * 100) : 0;
+  const stats = useMemo(() => {
+    if (!project?.tasks) return { doneCount: 0, todoCount: 0, completionRate: 0 };
+    const doneCount = project.tasks.filter((t) => t.status === "done").length;
+    const todoCount = project.tasks.length - doneCount;
+    const completionRate = project.tasks.length ? Math.round(doneCount / project.tasks.length * 100) : 0;
+    return { doneCount, todoCount, completionRate };
+  }, [project]);
 
   if (loading) return (
-    <div className="min-h-dvh bg-[var(--bg-secondary)]">
-      <header className="sticky top-0 z-40 border-b border-[var(--border-subtle)] bg-[var(--bg-primary)]/80 backdrop-blur-xl">
+    <div className="min-h-dvh bg-[var(--bg-primary)] bg-grid">
+      <header className="sticky top-0 z-40 border-b border-[var(--border-primary)] bg-[var(--bg-secondary)]/90 backdrop-blur-sm">
         <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4 lg:px-6">
           <Skeleton className="h-6 w-16" />
           <div className="flex items-center gap-2">
-            <Skeleton className="h-8 w-8 rounded-full" />
-            <Skeleton className="h-8 w-8 rounded-full" />
+            <Skeleton className="h-8 w-8 rounded-none" />
+            <Skeleton className="h-8 w-8 rounded-none" />
           </div>
         </div>
       </header>
       <main className="mx-auto max-w-5xl px-4 lg:px-6 py-6">
         <div className="mb-8">
           <div className="flex items-start gap-4 mb-4">
-            <Skeleton className="h-16 w-16 rounded-2xl" />
+            <Skeleton className="h-16 w-16 rounded-none" />
             <div className="flex-1">
               <Skeleton className="h-8 w-48 mb-2" />
               <Skeleton className="h-4 w-64" />
@@ -425,18 +441,18 @@ export default function ProjectDetailPage() {
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <Skeleton className="h-24 rounded-xl" />
-          <Skeleton className="h-24 rounded-xl" />
-          <Skeleton className="h-24 rounded-xl" />
+          <Skeleton className="h-24 rounded-none" />
+          <Skeleton className="h-24 rounded-none" />
+          <Skeleton className="h-24 rounded-none" />
         </div>
-        <Skeleton className="h-64 rounded-xl" />
+        <Skeleton className="h-64 rounded-none" />
       </main>
     </div>
   );
 
   if (!project) return (
-    <div className="min-h-dvh bg-[var(--bg-secondary)] flex items-center justify-center">
-      <div className="text-center">
+    <div className="min-h-dvh bg-[var(--bg-primary)] bg-grid flex items-center justify-center">
+      <div className="text-center cyber-card p-8 rounded-none">
         <h2 className="text-lg font-semibold text-[var(--text-primary)]">Not found</h2>
         <Link href="/" className="mt-2 inline-block text-sm text-[var(--accent)] hover:underline">
           {t("back")}
@@ -446,12 +462,12 @@ export default function ProjectDetailPage() {
   );
 
   return (
-    <div className="min-h-dvh bg-[var(--bg-secondary)]">
-      <header className="sticky top-0 z-40 border-b border-[var(--border-subtle)] bg-[var(--bg-primary)]/80 backdrop-blur-xl">
+    <div className="min-h-dvh bg-[var(--bg-primary)] bg-grid">
+      <header className="sticky top-0 z-40 border-b border-[var(--border-primary)] bg-[var(--bg-secondary)]/90 backdrop-blur-sm">
         <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4 lg:px-6">
           <Link 
             href="/" 
-            className="flex items-center gap-2 text-sm font-medium text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors"
+            className="flex items-center gap-2 text-sm font-medium text-[var(--text-tertiary)] hover:text-[var(--accent)] transition-colors"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="m12 19-7-7 7-7" /><path d="M19 12H5" />
@@ -460,7 +476,7 @@ export default function ProjectDetailPage() {
           </Link>
           <div className="flex items-center gap-1">
             <Button
-              variant="light"
+              variant="ghost"
               size="sm"
               onPress={() => setLang(lang === "zh" ? "en" : "zh")}
               className="font-medium text-[var(--text-secondary)]"
@@ -469,7 +485,7 @@ export default function ProjectDetailPage() {
             </Button>
             <Button
               isIconOnly
-              variant="light"
+              variant="ghost"
               size="sm"
               onPress={toggleTheme}
               className="text-[var(--text-secondary)]"
@@ -499,7 +515,7 @@ export default function ProjectDetailPage() {
         />
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <Card className="border border-[var(--border-subtle)] bg-[var(--bg-card)] md:col-span-1">
+          <Card className="cyber-card border-[var(--border-primary)] md:col-span-1">
             <Card.Content className="p-5 flex flex-col items-center">
               <div className="text-xs font-medium text-[var(--text-tertiary)] uppercase tracking-wide mb-4">{t("progress")}</div>
               <ProgressRing progress={project.progress} />
@@ -508,27 +524,26 @@ export default function ProjectDetailPage() {
           
           <StatCard 
             title={t("todo") || "待办"}
-            value={todoCount}
+            value={stats.todoCount}
             subtitle={`${project.tasks?.length || 0} ${t("totalTasks") || "总任务"}`}
-            colorClass="bg-[var(--warning)]/10 text-[var(--warning)]"
+            colorClass="bg-[var(--warning-soft)] text-[var(--warning)] p-3 rounded-none"
             icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>}
           />
           
           <StatCard 
             title={t("completed") || "已完成"}
-            value={doneCount}
-            subtitle={`${completionRate}%`}
-            colorClass="bg-[var(--success)]/10 text-[var(--success)]"
+            value={stats.doneCount}
+            subtitle={`${stats.completionRate}%`}
+            colorClass="bg-[var(--success-soft)] text-[var(--success)] p-3 rounded-none"
             icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4 12 14.01l-3-3"/></svg>}
           />
         </div>
 
         <div className="flex justify-end mb-4">
           <Button
-            variant="primary"
+            className="btn-cyber-primary"
             size="sm"
             onPress={() => setShowTaskModal(true)}
-            className="bg-[var(--accent)]"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
               <path d="M12 5v14M5 12h14" />

@@ -78,6 +78,68 @@ function writeData(data) {
   writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
 }
 
+function validateString(value, minLen = 1, maxLen = 255) {
+  return typeof value === 'string' && value.length >= minLen && value.length <= maxLen;
+}
+
+function validateProjectData(data, isUpdate = false) {
+  const errors = [];
+  
+  if (!isUpdate) {
+    if (!validateString(data.name, 1, 100)) errors.push('name is required (max 100 chars)');
+    if (!validateString(data.id, 1, 100)) errors.push('id is required (max 100 chars)');
+  }
+  
+  if (data.description && !validateString(data.description, 0, 1000)) {
+    errors.push('description too long (max 1000 chars)');
+  }
+  if (data.tech && !validateString(data.tech, 0, 200)) {
+    errors.push('tech too long (max 200 chars)');
+  }
+  
+  const validTypes = ['Chrome Extension', 'macOS Desktop App', 'Shell Script', 'Full-Stack Web App', 'Other'];
+  if (data.type && !validTypes.includes(data.type)) {
+    errors.push('invalid project type');
+  }
+  
+  const validStatuses = ['active', 'paused', 'completed', 'archived'];
+  if (data.status && !validStatuses.includes(data.status)) {
+    errors.push('invalid status');
+  }
+  
+  if (data.progress !== undefined) {
+    if (typeof data.progress !== 'number' || data.progress < 0 || data.progress > 100) {
+      errors.push('progress must be 0-100');
+    }
+  }
+  
+  return errors;
+}
+
+function validateTaskData(data, isUpdate = false) {
+  const errors = [];
+  
+  if (!isUpdate) {
+    if (!validateString(data.title, 1, 200)) errors.push('title is required (max 200 chars)');
+  }
+  
+  if (data.title && !validateString(data.title, 1, 200)) {
+    errors.push('title too long (max 200 chars)');
+  }
+  
+  const validPriorities = ['high', 'medium', 'low'];
+  if (data.priority && !validPriorities.includes(data.priority)) {
+    errors.push('invalid priority');
+  }
+  
+  const validStatuses = ['todo', 'done'];
+  if (data.status && !validStatuses.includes(data.status)) {
+    errors.push('invalid status');
+  }
+  
+  return errors;
+}
+
 function detectProjectInfo(dirPath) {
   const info = { type: 'Other', tech: '', summary: '' };
   const techs = [];
@@ -157,6 +219,14 @@ function scanProjects() {
   return projects;
 }
 
+// Error handling middleware
+function errorHandler(err, req, res, next) {
+  console.error('Unhandled error:', err);
+  res.status(500).json({ error: 'Internal server error' });
+}
+
+app.use(errorHandler);
+
 // 获取所有项目
 app.get('/api/projects', (req, res) => {
   res.json(scanProjects());
@@ -172,6 +242,11 @@ app.get('/api/projects/:id', (req, res) => {
 
 // 更新项目
 app.put('/api/projects/:id', (req, res) => {
+  const errors = validateProjectData(req.body, true);
+  if (errors.length > 0) {
+    return res.status(400).json({ error: errors.join(', ') });
+  }
+  
   const data = readData();
   let saved = data.projects.find(p => p.id === req.params.id);
   if (!saved) {
@@ -187,6 +262,11 @@ app.put('/api/projects/:id', (req, res) => {
 
 // 添加任务
 app.post('/api/projects/:id/tasks', (req, res) => {
+  const errors = validateTaskData(req.body);
+  if (errors.length > 0) {
+    return res.status(400).json({ error: errors.join(', ') });
+  }
+  
   const data = readData();
   let saved = data.projects.find(p => p.id === req.params.id);
   if (!saved) {
@@ -194,13 +274,12 @@ app.post('/api/projects/:id/tasks', (req, res) => {
     data.projects.push(saved);
   }
   const task = {
-    id: `task_${Date.now()}`,
+    id: `task_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
     title: req.body.title,
     status: req.body.status || 'todo',
     priority: req.body.priority || 'medium',
     createdAt: new Date().toISOString().split('T')[0],
     completedAt: null,
-    ...req.body
   };
   saved.tasks.push(task);
   writeData(data);
@@ -209,6 +288,11 @@ app.post('/api/projects/:id/tasks', (req, res) => {
 
 // 更新任务
 app.put('/api/projects/:id/tasks/:taskId', (req, res) => {
+  const errors = validateTaskData(req.body, true);
+  if (errors.length > 0) {
+    return res.status(400).json({ error: errors.join(', ') });
+  }
+  
   const data = readData();
   const saved = data.projects.find(p => p.id === req.params.id);
   if (!saved) return res.status(404).json({ error: 'Project not found' });
@@ -234,9 +318,18 @@ app.delete('/api/projects/:id/tasks/:taskId', (req, res) => {
 
 // 添加新项目
 app.post('/api/projects', (req, res) => {
+  const errors = validateProjectData(req.body);
+  if (errors.length > 0) {
+    return res.status(400).json({ error: errors.join(', ') });
+  }
+  
   const data = readData();
+  if (data.projects.find(p => p.id === req.body.id)) {
+    return res.status(409).json({ error: 'Project already exists' });
+  }
+  
   const project = {
-    id: req.body.id || `project_${Date.now()}`,
+    id: req.body.id,
     name: req.body.name,
     description: req.body.description || '',
     type: req.body.type || 'Other',
@@ -245,7 +338,6 @@ app.post('/api/projects', (req, res) => {
     progress: req.body.progress || 0,
     createdAt: new Date().toISOString().split('T')[0],
     tasks: [],
-    ...req.body
   };
   data.projects.push(project);
   writeData(data);
