@@ -85,16 +85,21 @@ type ContextType = {
 
 const Ctx = createContext<ContextType>({} as ContextType);
 
-export function Providers({ children }: { children: ReactNode }) {
-  const [lang, setLang] = useState<Lang>("zh");
-  const [theme, setTheme] = useState("dark");
+// Initialize state from localStorage outside component to avoid effect
+function getInitialLang(): Lang {
+  if (typeof window === "undefined") return "zh";
+  const s = localStorage.getItem("pm_lang");
+  return (s === "en" || s === "zh") ? s : "zh";
+}
 
-  useEffect(() => {
-    const s = localStorage.getItem("pm_lang");
-    if (s) setLang(s as Lang);
-    const t = localStorage.getItem("pm_theme");
-    if (t) setTheme(t);
-  }, []);
+function getInitialTheme(): string {
+  if (typeof window === "undefined") return "dark";
+  return localStorage.getItem("pm_theme") || "dark";
+}
+
+export function Providers({ children }: { children: ReactNode }) {
+  const [lang, setLang] = useState<Lang>(getInitialLang);
+  const [theme, setTheme] = useState<string>(getInitialTheme);
 
   useEffect(() => {
     localStorage.setItem("pm_lang", lang);
@@ -106,7 +111,14 @@ export function Providers({ children }: { children: ReactNode }) {
     document.documentElement.classList.toggle("light", theme === "light");
   }, [theme]);
 
-  const t = (key: string) => (messages[lang] as any)?.[key] || key;
+  interface MessageRecord {
+    [key: string]: string;
+  }
+
+  const t = (key: string): string => {
+    const msgs = messages[lang] as MessageRecord;
+    return msgs?.[key] || key;
+  };
   const toggleTheme = () => setTheme((p) => (p === "dark" ? "light" : "dark"));
 
   return (

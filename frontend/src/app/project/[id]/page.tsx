@@ -5,70 +5,33 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useApp } from "@/components/providers";
 import { fetchProject, updateProject, addTask, updateTask, deleteTask } from "@/lib/api";
-import type { Project, Task, NewTask, TaskPriority } from "@/lib/types";
+import type { Project, Task, NewTask, TaskPriority, ProjectStatus } from "@/lib/types";
+import { Modal } from "@/components/Modal";
+import { StatusDropdown } from "@/components/Dropdown";
 import {
   Button,
   Chip,
   Card,
   Input,
   Checkbox,
+  Select,
   ListBox,
   ListBoxItem,
-  Select,
 } from "@heroui/react";
 
 function Skeleton({ className }: { className?: string }) {
   return <div className={`animate-pulse bg-[var(--bg-secondary)] rounded-none ${className}`} />;
 }
 
-function StatusSelect({ value, onChange, statusColor, statusMap, t }: any) {
-  const [open, setOpen] = useState(false);
-  const statuses = ["active", "paused", "completed", "archived"];
-  
-  const colorMap: Record<string, string> = {
-    active: "bg-[var(--success)]",
-    paused: "bg-[var(--warning)]",
-    completed: "bg-[var(--accent)]",
-    archived: "bg-[var(--text-tertiary)]",
-  };
-  
-  return (
-    <div className="relative">
-      <button
-        onClick={() => setOpen(!open)}
-        className="flex items-center gap-2 px-3 py-2 rounded-none border border-[var(--border-primary)] bg-[var(--bg-secondary)] hover:border-[var(--accent)] transition-colors cursor-pointer"
-      >
-        <span className={`w-2 h-2 rounded-none ${colorMap[value]}`} />
-        <span className="text-sm font-medium text-[var(--text-primary)]">{statusMap[value]}</span>
-        <svg className={`w-4 h-4 text-[var(--text-tertiary)] transition-transform ${open ? 'rotate-180' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="m6 9 6 6 6-6"/>
-        </svg>
-      </button>
-      
-      {open && (
-        <>
-          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 top-full mt-1 w-40 py-1 rounded-none border border-[var(--border-primary)] bg-[var(--bg-card)] z-20">
-            {statuses.map((status) => (
-              <button
-                key={status}
-                onClick={() => { onChange(status); setOpen(false); }}
-                className={`w-full flex items-center gap-2 px-3 py-2 text-sm text-left hover:bg-[var(--accent-soft)] transition-colors cursor-pointer ${
-                  value === status ? 'bg-[var(--accent-soft)]' : ''
-                }`}
-              >
-                <span className={`w-2 h-2 rounded-none ${colorMap[status]}`} />
-                <span className="text-[var(--text-primary)]">{statusMap[status]}</span>
-              </button>
-            ))}
-          </div>
-        </>
-      )}
-    </div>
-  );
+interface ProjectHeaderProps {
+  project: Project;
+  localStatus: string;
+  statusColor: Record<string, "default" | "danger" | "success" | "warning" | "accent">;
+  statusMap: Record<string, string>;
+  onStatusChange: (status: string) => void;
 }
 
-function ProjectHeader({ project, localStatus, statusColor, statusMap, onStatusChange, t }: any) {
+function ProjectHeader({ project, localStatus, statusColor, statusMap, onStatusChange }: ProjectHeaderProps) {
   return (
     <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6 mb-8">
       <div className="flex items-start gap-4">
@@ -83,7 +46,7 @@ function ProjectHeader({ project, localStatus, statusColor, statusMap, onStatusC
             <h1 className="text-2xl lg:text-3xl font-bold tracking-tight text-[var(--text-primary)] font-[family-name:var(--font-heading)]">{project.name}</h1>
             <Chip 
               size="sm" 
-              color={statusColor[project.status] || "default"} 
+              color={statusColor[project.status] || "default"}
               variant="soft"
               className="font-medium"
             >
@@ -103,12 +66,10 @@ function ProjectHeader({ project, localStatus, statusColor, statusMap, onStatusC
       </div>
       
       <div className="flex items-center gap-3">
-        <StatusSelect
+        <StatusDropdown
           value={localStatus}
           onChange={onStatusChange}
-          statusColor={statusColor}
           statusMap={statusMap}
-          t={t}
         />
       </div>
     </div>
@@ -151,7 +112,15 @@ function ProgressRing({ progress }: { progress: number }) {
   );
 }
 
-function StatCard({ title, value, subtitle, colorClass, icon }: any) {
+interface StatCardProps {
+  title: string;
+  value: number | string;
+  subtitle: string;
+  colorClass: string;
+  icon: React.ReactNode;
+}
+
+function StatCard({ title, value, subtitle, colorClass, icon }: StatCardProps) {
   return (
     <Card className="cyber-card border-[var(--border-primary)]">
       <Card.Content className="p-5 flex items-center gap-4">
@@ -168,7 +137,15 @@ function StatCard({ title, value, subtitle, colorClass, icon }: any) {
   );
 }
 
-function TaskItem({ task, onToggle, onDelete, priorityLabel, priorityColor, t }: any) {
+interface TaskItemProps {
+  task: Task;
+  onToggle: (task: Task) => void;
+  onDelete: (task: Task) => void;
+  priorityLabel: Record<TaskPriority, string>;
+  priorityColor: Record<TaskPriority, "default" | "danger" | "success" | "warning" | "accent">;
+}
+
+function TaskItem({ task, onToggle, onDelete, priorityLabel, priorityColor }: TaskItemProps) {
   return (
     <div className="group flex items-center gap-3 px-4 py-3 hover:bg-[var(--accent-soft)] transition-colors rounded-none">
       <Checkbox
@@ -208,18 +185,27 @@ function TaskItem({ task, onToggle, onDelete, priorityLabel, priorityColor, t }:
   );
 }
 
-function TaskList({ tasks, onToggle, onDelete, priorityLabel, priorityColor, t }: any) {
+interface TaskListProps {
+  tasks: Task[];
+  onToggle: (task: Task) => void;
+  onDelete: (task: Task) => void;
+  priorityLabel: Record<TaskPriority, string>;
+  priorityColor: Record<TaskPriority, "default" | "danger" | "success" | "warning" | "accent">;
+  t: (key: string) => string;
+}
+
+function TaskList({ tasks, onToggle, onDelete, priorityLabel, priorityColor, t }: TaskListProps) {
   const sortedTasks = tasks
-    ? [...tasks].sort((a: any, b: any) => {
+    ? [...tasks].sort((a: Task, b: Task) => {
         if (a.status === "done" && b.status !== "done") return 1;
         if (a.status !== "done" && b.status === "done") return -1;
-        const po: any = { high: 0, medium: 1, low: 2 };
-        return (po[a.priority] || 1) - (po[b.priority] || 1);
+        const po: Record<string, number> = { high: 0, medium: 1, low: 2 };
+        return (po[a.priority || "medium"] || 1) - (po[b.priority || "medium"] || 1);
       })
     : [];
 
-  const todoTasks = sortedTasks.filter((t: any) => t.status !== "done");
-  const doneTasks = sortedTasks.filter((t: any) => t.status === "done");
+  const todoTasks = sortedTasks.filter((t: Task) => t.status !== "done");
+  const doneTasks = sortedTasks.filter((t: Task) => t.status === "done");
 
   return (
     <Card className="cyber-card border-[var(--border-primary)] overflow-hidden">
@@ -241,7 +227,7 @@ function TaskList({ tasks, onToggle, onDelete, priorityLabel, priorityColor, t }
                 {t("todo")} ({todoTasks.length})
               </div>
               <div className="space-y-0">
-                {todoTasks.map((task: any) => (
+                {todoTasks.map((task: Task) => (
                   <TaskItem 
                     key={task.id} 
                     task={task} 
@@ -249,7 +235,6 @@ function TaskList({ tasks, onToggle, onDelete, priorityLabel, priorityColor, t }
                     onDelete={onDelete}
                     priorityLabel={priorityLabel}
                     priorityColor={priorityColor}
-                    t={t}
                   />
                 ))}
               </div>
@@ -262,7 +247,7 @@ function TaskList({ tasks, onToggle, onDelete, priorityLabel, priorityColor, t }
                 {t("completed")} ({doneTasks.length})
               </div>
               <div className="space-y-0">
-                {doneTasks.map((task: any) => (
+                {doneTasks.map((task: Task) => (
                   <TaskItem 
                     key={task.id} 
                     task={task} 
@@ -270,7 +255,6 @@ function TaskList({ tasks, onToggle, onDelete, priorityLabel, priorityColor, t }
                     onDelete={onDelete}
                     priorityLabel={priorityLabel}
                     priorityColor={priorityColor}
-                    t={t}
                   />
                 ))}
               </div>
@@ -292,57 +276,35 @@ function TaskList({ tasks, onToggle, onDelete, priorityLabel, priorityColor, t }
   );
 }
 
-function AddTaskModal({ isOpen, onClose, onAdd, newTask, setNewTask, t }: any) {
-  if (!isOpen) return null;
-  
+function AddTaskForm({ newTask, setNewTask }: { newTask: NewTask; setNewTask: (t: NewTask) => void }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/80" onClick={onClose} />
-      <div className="relative w-full max-w-md modal-cyber rounded-none animate-in fade-in zoom-in-95 duration-300">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border-subtle)] bg-[var(--bg-elevated)]">
-          <h2 className="text-lg font-semibold text-[var(--text-primary)]">{t("addTaskTitle")}</h2>
-          <Button isIconOnly variant="ghost" size="sm" onPress={onClose} className="text-[var(--text-tertiary)] h-8 w-8 min-w-0">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-          </Button>
-        </div>
-        
-        <div className="p-6 flex flex-col gap-5">
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-[var(--text-secondary)]">{t("taskTitle")}</label>
-            <Input
-              placeholder={t("taskTitle")}
-              value={newTask.title}
-              onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
-            />
-          </div>
-          
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-[var(--text-secondary)]">{t("priority")}</label>
-            <Select
-              selectedKey={newTask.priority}
-              onSelectionChange={(key) => setNewTask({ ...newTask, priority: String(key || "") })}
-            >
-              <ListBox>
-                <ListBoxItem id="high">{t("high")}</ListBoxItem>
-                <ListBoxItem id="medium">{t("medium")}</ListBoxItem>
-                <ListBoxItem id="low">{t("low")}</ListBoxItem>
-              </ListBox>
-            </Select>
-          </div>
-        </div>
-        
-        <div className="flex justify-end gap-3 px-6 py-4 border-t border-[var(--border-subtle)]">
-          <Button variant="ghost" onPress={onClose}>{t("cancel")}</Button>
-          <Button 
-            className="btn-cyber-primary"
-            onPress={onAdd}
-            isDisabled={!newTask.title.trim()}
-          >
-            {t("add")}
-          </Button>
-        </div>
+    <>
+      <div className="flex flex-col gap-1.5">
+        <label className="text-sm font-medium text-[var(--text-secondary)]">任务标题</label>
+        <Input
+          placeholder="任务标题"
+          value={newTask.title}
+          onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
+        />
       </div>
-    </div>
+
+      <div className="flex flex-col gap-1.5">
+        <label className="text-sm font-medium text-[var(--text-secondary)]">优先级</label>
+        <Select
+          selectedKey={newTask.priority}
+          onSelectionChange={(key) => {
+            const value = key?.toString() as TaskPriority;
+            if (value) setNewTask({ ...newTask, priority: value });
+          }}
+        >
+          <ListBox>
+            <ListBoxItem id="high">高</ListBoxItem>
+            <ListBoxItem id="medium">中</ListBoxItem>
+            <ListBoxItem id="low">低</ListBoxItem>
+          </ListBox>
+        </Select>
+      </div>
+    </>
   );
 }
 
@@ -352,24 +314,23 @@ export default function ProjectDetailPage() {
   const { t, lang, setLang, theme, toggleTheme } = useApp();
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [newTask, setNewTask] = useState<NewTask>({ title: "", priority: "medium" });
   const [localStatus, setLocalStatus] = useState<string>("active");
 
   const load = useCallback(async () => {
     setLoading(true);
-    setError(null);
     try {
       const data = await fetchProject(id);
       if (!data) {
-        setError("Project not found");
+        console.error("Project not found");
+        setProject(null);
         return;
       }
       setProject(data);
       setLocalStatus(data.status);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to load project");
+      console.error("Failed to load project:", e);
     } finally {
       setLoading(false);
     }
@@ -379,7 +340,7 @@ export default function ProjectDetailPage() {
 
   async function handleStatusChange(val: string) {
     setLocalStatus(val);
-    await updateProject(id, { status: val as any });
+    await updateProject(id, { status: val as ProjectStatus });
     load();
   }
 
@@ -404,10 +365,10 @@ export default function ProjectDetailPage() {
 
   const priorityLabel: Record<TaskPriority, string> = 
     { high: t("high"), medium: t("medium"), low: t("low") };
-  const priorityColor: Record<TaskPriority, string> = 
-    { high: "danger", medium: "warning", low: "success" };
-  const statusColor: Record<string, string> = 
-    { active: "success", paused: "warning", completed: "default", archived: "default" };
+  const priorityColor: Record<TaskPriority, "default" | "danger" | "success" | "warning" | "accent"> = 
+    { high: "danger", medium: "warning", low: "success" } as const;
+  const statusColor: Record<string, "default" | "danger" | "success" | "warning" | "accent"> = 
+    { active: "success", paused: "warning", completed: "default", archived: "default" } as const;
   const statusMap: Record<string, string> = 
     { active: t("active"), paused: t("paused"), completed: t("completedStatus"), archived: t("archived") };
 
@@ -511,7 +472,6 @@ export default function ProjectDetailPage() {
           statusColor={statusColor}
           statusMap={statusMap}
           onStatusChange={handleStatusChange}
-          t={t}
         />
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -562,14 +522,19 @@ export default function ProjectDetailPage() {
         />
       </main>
 
-      <AddTaskModal
+      <Modal
         isOpen={showTaskModal}
         onClose={() => setShowTaskModal(false)}
-        onAdd={handleAddTask}
-        newTask={newTask}
-        setNewTask={setNewTask}
-        t={t}
-      />
+        title={t("addTaskTitle")}
+        footer={
+          <>
+            <Button variant="ghost" onPress={() => setShowTaskModal(false)}>{t("cancel")}</Button>
+            <Button className="btn-cyber-primary" onPress={handleAddTask} isDisabled={!newTask.title.trim()}>{t("add")}</Button>
+          </>
+        }
+      >
+        <AddTaskForm newTask={newTask} setNewTask={setNewTask} />
+      </Modal>
     </div>
   );
 }

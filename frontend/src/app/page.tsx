@@ -5,135 +5,121 @@ import Link from "next/link";
 import { useApp } from "@/components/providers";
 import { fetchProjects, addProject, deleteProject } from "@/lib/api";
 import type { Project, NewProject } from "@/lib/types";
+import { Modal, ConfirmModal } from "@/components/Modal";
 import {
   Card,
   Button,
   Input,
-  TextArea,
   ProgressBar,
   Chip,
 } from "@heroui/react";
 
-function AddProjectModal({ isOpen, onClose, onAdd, newProj, setNewProj, t }: any) {
+interface DeleteConfirmModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  target: Project | null;
+  t: (key: string) => string;
+}
+
+function DeleteConfirmModal({ isOpen, onClose, onConfirm, target, t }: DeleteConfirmModalProps) {
   if (!isOpen) return null;
   
-  const projectTypes = [
-    { id: "Chrome Extension", label: "Chrome Extension" },
-    { id: "macOS Desktop App", label: "macOS Desktop App" },
-    { id: "Shell Script", label: "Shell Script" },
-    { id: "Full-Stack Web App", label: "Full-Stack Web App" },
-    { id: "Other", label: "Other" },
-  ];
-  
+  return (
+    <ConfirmModal
+      isOpen={isOpen}
+      onClose={onClose}
+      onConfirm={onConfirm}
+      title="确认删除"
+      message={`确定要删除项目 <strong className="text-[var(--text-primary)] font-medium">${target?.name}</strong> 吗？<br/><span className="text-[var(--danger)]">此操作不可撤销</span>`}
+      confirmText={t("delete")}
+      cancelText={t("cancel")}
+      danger
+    />
+  );
+}
+
+interface AddProjectFormProps {
+  newProj: NewProject;
+  setNewProj: (p: NewProject) => void;
+}
+
+const projectTypes = [
+  { id: "Chrome Extension", label: "Chrome Extension" },
+  { id: "macOS Desktop App", label: "macOS Desktop App" },
+  { id: "Shell Script", label: "Shell Script" },
+  { id: "Full-Stack Web App", label: "Full-Stack Web App" },
+  { id: "Other", label: "Other" },
+];
+
+function AddProjectForm({ newProj, setNewProj }: AddProjectFormProps) {
   const [typeOpen, setTypeOpen] = useState(false);
   const selectedType = projectTypes.find(p => p.id === newProj.type);
   
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/80" onClick={onClose} />
-      <div className="relative w-full max-w-md modal-cyber rounded-none animate-in fade-in zoom-in-95 duration-300">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border-subtle)] bg-[var(--bg-elevated)]">
-          <h2 className="text-lg font-semibold text-[var(--text-primary)] font-[family-name:var(--font-heading)]">{t("addProjectTitle")}</h2>
-          <Button isIconOnly variant="ghost" size="sm" onPress={onClose} className="text-[var(--text-tertiary)]">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-          </Button>
-        </div>
-        
-        <div className="p-6 flex flex-col gap-5">
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-[var(--text-secondary)]">{t("projectName")}</label>
-            <Input
-              placeholder={t("projectName")}
-              value={newProj.name}
-              onChange={(e) => setNewProj({ ...newProj, name: e.target.value })}
-            />
-          </div>
-          
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-[var(--text-secondary)]">{t("description")}</label>
-            <TextArea
-              placeholder={t("description")}
-              value={newProj.description}
-              onChange={(e) => setNewProj({ ...newProj, description: e.target.value })}
-              rows={2}
-            />
-          </div>
-          
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-[var(--text-secondary)]">{t("type")}</label>
-            <div className="relative">
-              <button
-                onClick={() => setTypeOpen(!typeOpen)}
-                className="w-full flex items-center justify-between px-3 py-2.5 rounded-none border border-[var(--border-primary)] bg-[var(--bg-secondary)] hover:border-[var(--accent)] transition-colors cursor-pointer"
-              >
-                <span className="text-sm text-[var(--text-primary)]">{selectedType?.label}</span>
-                <svg className={`w-4 h-4 text-[var(--text-tertiary)] transition-transform ${typeOpen ? 'rotate-180' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="m6 9 6 6 6-6"/>
-                </svg>
-              </button>
-              {typeOpen && (
-                <>
-                  <div className="fixed inset-0 z-10" onClick={() => setTypeOpen(false)} />
-                  <div className="absolute left-0 right-0 top-full mt-1 py-1 rounded-none border border-[var(--border-primary)] bg-[var(--bg-card)] z-20">
-                    {projectTypes.map((type) => (
-                      <button
-                        key={type.id}
-                        onClick={() => { setNewProj({ ...newProj, type: type.id }); setTypeOpen(false); }}
-                        className={`w-full px-3 py-2 text-sm text-left hover:bg-[var(--accent-soft)] transition-colors cursor-pointer ${
-                          newProj.type === type.id ? 'bg-[var(--accent-soft)]' : ''
-                        }`}
-                      >
-                        <span className="text-[var(--text-primary)]">{type.label}</span>
-                      </button>
-                    ))}
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-          
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-[var(--text-secondary)]">{t("tech")}</label>
-            <Input
-              placeholder="Vue 3, Swift..."
-              value={newProj.tech}
-              onChange={(e) => setNewProj({ ...newProj, tech: e.target.value })}
-            />
-          </div>
-        </div>
-        
-        <div className="flex justify-end gap-3 px-6 py-4 border-t border-[var(--border-subtle)]">
-          <Button variant="ghost" onPress={onClose}>{t("cancel")}</Button>
-          <Button className="btn-cyber-primary" onClick={onAdd} isDisabled={!newProj.name.trim()}>{t("add")}</Button>
-        </div>
+    <>
+      <div className="flex flex-col gap-1.5">
+        <label className="text-sm font-medium text-[var(--text-secondary)]">项目名称</label>
+        <Input
+          placeholder="项目名称"
+          value={newProj.name}
+          onChange={(e) => setNewProj({ ...newProj, name: e.target.value })}
+        />
       </div>
-    </div>
-  );
-}
 
-function DeleteConfirmModal({ isOpen, onClose, onConfirm, target, t }: any) {
-  if (!isOpen) return null;
-  
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/80" onClick={onClose} />
-      <div className="relative w-full max-w-sm modal-cyber rounded-none animate-in fade-in zoom-in-95 duration-300">
-        <div className="flex flex-col items-center p-8 text-center gap-3">
-          <div className="mb-2 flex h-14 w-14 items-center justify-center rounded-none bg-[var(--danger-soft)] border border-[var(--danger)]">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" strokeWidth="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
-          </div>
-          <h3 className="text-lg font-semibold text-[var(--text-primary)]">确认删除</h3>
-          <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
-            确定要删除项目 <strong className="text-[var(--text-primary)] font-medium">{target?.name}</strong> 吗？<br/>
-            <span className="text-[var(--danger)]">此操作不可撤销</span>
-          </p>
-        </div>
-        <div className="flex justify-center gap-3 px-8 pb-8 pt-2">
-          <Button variant="ghost" className="flex-1" onPress={onClose}>{t("cancel")}</Button>
-          <Button variant="ghost" className="flex-1 bg-[var(--danger)] text-white" onClick={onConfirm}>{t("delete")}</Button>
+      <div className="flex flex-col gap-1.5">
+        <label className="text-sm font-medium text-[var(--text-secondary)]">描述</label>
+        <Input
+          placeholder="项目描述"
+          value={newProj.description}
+          onChange={(e) => setNewProj({ ...newProj, description: e.target.value })}
+        />
+      </div>
+
+      <div className="flex flex-col gap-1.5">
+        <label className="text-sm font-medium text-[var(--text-secondary)]">类型</label>
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => setTypeOpen(!typeOpen)}
+            className="w-full flex items-center justify-between px-3 py-2.5 rounded-none border border-[var(--border-primary)] bg-[var(--bg-secondary)] hover:border-[var(--accent)] transition-colors cursor-pointer"
+          >
+            <span className="text-sm text-[var(--text-primary)]">{selectedType?.label}</span>
+            <svg className={`w-4 h-4 text-[var(--text-tertiary)] transition-transform ${typeOpen ? 'rotate-180' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="m6 9 6 6 6-6"/>
+            </svg>
+          </button>
+          {typeOpen && (
+            <>
+              <div className="fixed inset-0 z-10" onClick={() => setTypeOpen(false)} />
+              <div className="absolute left-0 right-0 top-full mt-1 py-1 rounded-none border border-[var(--border-primary)] bg-[var(--bg-card)] z-20">
+                {projectTypes.map((type) => (
+                  <button
+                    type="button"
+                    key={type.id}
+                    onClick={() => { setNewProj({ ...newProj, type: type.id }); setTypeOpen(false); }}
+                    className={`w-full px-3 py-2 text-sm text-left hover:bg-[var(--accent-soft)] transition-colors cursor-pointer ${
+                      newProj.type === type.id ? 'bg-[var(--accent-soft)]' : ''
+                    }`}
+                  >
+                    <span className="text-[var(--text-primary)]">{type.label}</span>
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
         </div>
       </div>
-    </div>
+
+      <div className="flex flex-col gap-1.5">
+        <label className="text-sm font-medium text-[var(--text-secondary)]">技术栈</label>
+        <Input
+          placeholder="Vue 3, Swift..."
+          value={newProj.tech}
+          onChange={(e) => setNewProj({ ...newProj, tech: e.target.value })}
+        />
+      </div>
+    </>
   );
 }
 
@@ -141,7 +127,6 @@ export default function HomePage() {
   const { t, lang, setLang, theme, toggleTheme } = useApp();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -156,12 +141,11 @@ export default function HomePage() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    setError(null);
     try {
       const data = await fetchProjects();
       setProjects(data);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to load projects");
+      console.error("Failed to load projects:", e);
     } finally {
       setLoading(false);
     }
@@ -211,7 +195,7 @@ export default function HomePage() {
   }
 
   const statusColor: Record<string, "success" | "warning" | "default"> = 
-    { active: "success", paused: "warning", completed: "default", archived: "default" };
+    { active: "success", paused: "warning", completed: "default", archived: "default" } as const;
   const statusMap: Record<string, string> = { 
     active: t("active"), 
     paused: t("paused"), 
@@ -365,14 +349,19 @@ export default function HomePage() {
         )}
       </main>
 
-      <AddProjectModal
+      <Modal
         isOpen={showModal}
         onClose={() => setShowModal(false)}
-        onAdd={handleAdd}
-        newProj={newProj}
-        setNewProj={setNewProj}
-        t={t}
-      />
+        title={t("addProjectTitle")}
+        footer={
+          <>
+            <Button variant="ghost" onPress={() => setShowModal(false)}>{t("cancel")}</Button>
+            <Button className="btn-cyber-primary" onPress={handleAdd} isDisabled={!newProj.name.trim()}>{t("add")}</Button>
+          </>
+        }
+      >
+        <AddProjectForm newProj={newProj} setNewProj={setNewProj} />
+      </Modal>
 
       <DeleteConfirmModal
         isOpen={showDeleteModal}
