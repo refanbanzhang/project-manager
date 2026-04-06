@@ -1,6 +1,6 @@
 import type { Project, NewProject, UpdateProjectData, Task, NewTask, UpdateTaskData } from './types';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002";
 
 export async function fetchProjects(): Promise<Project[]> {
   const res = await fetch(`${API_BASE}/api/projects`, { cache: "no-store" });

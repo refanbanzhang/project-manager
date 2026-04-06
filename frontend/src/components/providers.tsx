@@ -92,14 +92,20 @@ function getInitialLang(): Lang {
   return (s === "en" || s === "zh") ? s : "zh";
 }
 
+const SSR_DEFAULT_THEME = "dark";
+
 function getInitialTheme(): string {
-  if (typeof window === "undefined") return "dark";
-  return localStorage.getItem("pm_theme") || "dark";
+  return SSR_DEFAULT_THEME;
 }
 
 export function Providers({ children }: { children: ReactNode }) {
   const [lang, setLang] = useState<Lang>(getInitialLang);
   const [theme, setTheme] = useState<string>(getInitialTheme);
+
+  useEffect(() => {
+    const stored = localStorage.getItem("pm_theme");
+    if (stored && stored !== theme) setTheme(stored);
+  }, []);
 
   useEffect(() => {
     localStorage.setItem("pm_lang", lang);

@@ -31,7 +31,7 @@ function DeleteConfirmModal({ isOpen, onClose, onConfirm, target, t }: DeleteCon
       onClose={onClose}
       onConfirm={onConfirm}
       title="确认删除"
-      message={`确定要删除项目 <strong className="text-[var(--text-primary)] font-medium">${target?.name}</strong> 吗？<br/><span className="text-[var(--danger)]">此操作不可撤销</span>`}
+      message={`确定要删除项目 <strong class="text-[var(--text-primary)] font-medium">${target?.name}</strong> 吗？<br/><span class="text-[var(--danger)]">此操作不可撤销</span>`}
       confirmText={t("delete")}
       cancelText={t("cancel")}
       danger

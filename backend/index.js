@@ -385,7 +385,8 @@ function findAvailablePort(startPort) {
   });
 }
 
-const PORT = 3001;
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+findAvailablePort(3001).then((PORT) => {
+  app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+  });
 });
